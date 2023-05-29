@@ -41,6 +41,4 @@ COPY initialize_cron.sh /root/
 
 RUN chmod +x /root/initialize_cron.sh
 
-RUN crontab
-
-RUN (crontab -l) | crontab
+ENTRYPOINT [ "cron", "-f" ]
