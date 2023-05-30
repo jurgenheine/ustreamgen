@@ -41,4 +41,6 @@ COPY initialize_cron.sh /root/
 
 RUN chmod +x /root/initialize_cron.sh
 
-CMD cron && tail -f /logs/cron.log
+RUN crontab
+
+RUN (crontab -l) | crontab

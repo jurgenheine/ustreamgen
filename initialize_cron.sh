@@ -6,67 +6,57 @@
 #create log file
 touch /logs/cron.log
 
+# remove old jobs, needed when docker restarted, otherwise there multiple rules created
+crontab -r
+
 #create cron rule(s)
 if [ "$SINGLELIST" == "true" ]
 then
-    cmd="cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/"
-    eval " $cmd"
-    croncmd = "root $cmd >> /logs/cron.log 2>&1"
+    cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/
     if [ -z "$CRON" ]
     then
         # CRON variable empty, use the hour minute
-        cronjob="$CRONMINUTE $CRONHOUR * * * $croncmd"
+        (crontab -l ; echo "$CRONMINUTE $CRONHOUR * * * root cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/ >>/logs/cron.log 2>&1") | crontab
     else
         # Use FULL CRON, so you can shedule like you want
-        cronjob="$CRON $croncmd"
+        (crontab -l ; echo "$CRON root cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/ >>/logs/cron.log 2>&1") | crontab
     fi
-    ( crontab -l | grep -v -F "$croncmd" || : ; echo "$cronjob" ) | crontab -
 else
     if [ "$TVSHOWS" == "true" ]
     then 
-        tvcmd="cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/"
-        eval " $tvcmd"
-        crontvcmd = "root $tvcmd >> /logs/cron.log 2>&1"
+        cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/
         if [ -z "$TVCRON" ]
         then
             # CRON variable empty, use the hour minute
-            crontvjob="$TVCRONMINUTE $TVCRONHOUR * * * $crontvcmd"
+            (crontab -l ; echo "$TVCRONMINUTE $TVCRONHOUR * * * root cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/ >>/logs/cron.log 2>&1") | crontab
         else
             # Use FULL CRON, so you can shedule like you want
-            crontvjob="$TVCRON $crontvcmd"
+            (crontab -l ; echo "$TVCRON root cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/ > /dev/stdout 2>&1") | crontab
         fi
-        ( crontab -l | grep -v -F "$crontvcmd" || : ; echo "$crontvjob" ) | crontab -
     fi
     if [ "$MOVIES" == "true" ]
     then
-        
-        moviecmd="cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/"
-        eval " $moviecmd"
-        cronmoviecmd="root $moviecmd >> /logs/cron.log 2>&1"
+        cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/
         if [ -z "$MOVIECRON" ]
         then
             # CRON variable empty, use the hour minute
-            cronmoviejob="$MOVIECRONMINUTE $MOVIECRONHOUR * * * $cronmoviecmd"
+            (crontab -l ; echo "$MOVIECRONMINUTE $MOVIECRONHOUR * * * root cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/ >>/logs/cron.log 2>&1") | crontab
         else
             # Use FULL CRON, so you can shedule like you want
-            cronmoviejob="$MOVIECRON $cronmoviecmd"
+            (crontab -l ; echo "$MOVIECRON root cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/ >>/logs/cron.log 2>&1") | crontab
         fi
-        ( crontab -l | grep -v -F "$cronmoviecmd" || : ; echo "$cronmoviejob" ) | crontab -
     fi
     if [ "$EVENTS" == "true" ]
     then
-       
-        eventcmd=" cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/"
-        eval " $eventcmd"
-        croneventcmd="root $eventcmd >> /logs/cron.log 2>&1"
+        cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/
         if [ -z "$EVENTCRON" ]
         then
             # CRON variable empty, use the hour minute
-            croneventsjob="$EVENTCRONMINUTE $EVENTCRONHOUR * * * $croneventcmd"
+            (crontab -l ; echo "$EVENTCRONMINUTE $EVENTCRONHOUR * * * root cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/>>/logs/cron.log 2>&1") | crontab
         else
             # Use FULL CRON, so you can shedule like you want
-            croneventsjob="$EVENTCRON $croneventcmd"
+            (crontab -l ; echo "$EVENTCRON root  cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/ >>/logs/cron.log 2>&1") | crontab
         fi
-        ( crontab -l | grep -v -F "$croneventcmd" || : ; echo "$croneventsjob" ) | crontab -
     fi
 fi
+cron && tail -f /logs/cron.log
