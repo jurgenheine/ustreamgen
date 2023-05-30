@@ -41,4 +41,4 @@ COPY initialize_cron.sh /root/
 
 RUN chmod +x /root/initialize_cron.sh
 
-ENTRYPOINT [ "cron", "-f" ]
+CMD cron && tail -f /logs/cron.log

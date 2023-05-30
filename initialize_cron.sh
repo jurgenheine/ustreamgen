@@ -16,10 +16,10 @@ then
     if [ -z "$CRON" ]
     then
         # CRON variable empty, use the hour minute
-        (crontab -l ; echo "$CRONMINUTE $CRONHOUR * * * cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/ > /dev/stdout 2>&1") | crontab
+        (crontab -l ; echo "$CRONMINUTE $CRONHOUR * * * root cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/ >> /logs/cron.log 2>&1") | crontab
     else
         # Use FULL CRON, so you can shedule like you want
-        (crontab -l ; echo "$CRON cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/ > /dev/stdout 2>&1") | crontab
+        (crontab -l ; echo "$CRON root cd /m3u2strm && python3 main.py $SINGLELISTURL all $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/ >> /logs/cron.log 2>&1") | crontab
     fi
 else
     if [ "$TVSHOWS" == "true" ]
@@ -28,10 +28,10 @@ else
         if [ -z "$TVCRON" ]
         then
             # CRON variable empty, use the hour minute
-            (crontab -l ; echo "$TVCRONMINUTE $TVCRONHOUR * * * cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/ > /dev/stdout 2>&1") | crontab
+            (crontab -l ; echo "$TVCRONMINUTE $TVCRONHOUR * * * root cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/ >> /logs/cron.log 2>&1") | crontab
         else
             # Use FULL CRON, so you can shedule like you want
-            (crontab -l ; echo "$TVCRON cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/ > /dev/stdout 2>&1") | crontab
+            (crontab -l ; echo "$TVCRON root cd /m3u2strm && python3 main.py $TVSHOWURL tvshows $APOLLO /tv/ >> /logs/cron.log 2>&1") | crontab
         fi
     fi
     if [ "$MOVIES" == "true" ]
@@ -40,10 +40,10 @@ else
         if [ -z "$MOVIECRON" ]
         then
             # CRON variable empty, use the hour minute
-            (crontab -l ; echo "$MOVIECRONMINUTE $MOVIECRONHOUR * * * cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/ > /dev/stdout 2>&1") | crontab
+            (crontab -l ; echo "$MOVIECRONMINUTE $MOVIECRONHOUR * * * root cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/ >> /logs/cron.log 2>&1") | crontab
         else
             # Use FULL CRON, so you can shedule like you want
-            (crontab -l ; echo "$MOVIECRON cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/ > /dev/stdout 2>&1") | crontab
+            (crontab -l ; echo "$MOVIECRON root cd /m3u2strm && python3 main.py $MOVIEURL movies $APOLLO /movies/ >> /logs/cron.log 2>&1") | crontab
         fi
     fi
     if [ "$EVENTS" == "true" ]
@@ -52,11 +52,10 @@ else
         if [ -z "$EVENTCRON" ]
         then
             # CRON variable empty, use the hour minute
-            (crontab -l ; echo "$EVENTCRONMINUTE $EVENTCRONHOUR * * * cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/ > /dev/stdout 2>&1") | crontab
+            (crontab -l ; echo "$EVENTCRONMINUTE $EVENTCRONHOUR * * * root cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/ > /dev/stdout 2>&1") | crontab
         else
             # Use FULL CRON, so you can shedule like you want
-            (crontab -l ; echo "$EVENTCRON cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/ > /dev/stdout 2>&1") | crontab
+            (crontab -l ; echo "$EVENTCRON root cd /m3u2strm && python3 main.py $EVENTURL events $APOLLO /events/ >> /logs/cron.log 2>&1") | crontab
         fi
     fi
 fi
-cron && tail -f /logs/cron.log
