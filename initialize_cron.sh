@@ -12,7 +12,7 @@ touch /logs/cron.log
 #create cron rule(s)
 if [ "$SINGLELIST" == "true" ]
 then
-    echo "cd /m3u2strm && python3 main.py $SINGLELISTURL 'all' $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/" > /root/parse_singlelist.sh
+    printf "#! /bin/bash\ncd /m3u2strm && python3 main.py $SINGLELISTURL 'all' $MOVIES $TVSHOWS $EVENTS /movies/ /tv/ /events/" > /root/parse_singlelist.sh
     chmod +x /root/parse_singlelist.sh
     /root/parse_singlelist.sh
 
@@ -27,7 +27,7 @@ then
 else
     if [ "$TVSHOWS" == "true" ]
     then 
-        echo "cd /m3u2strm && python3 main.py $TVSHOWURL 'tvshows' $APOLLO /tv/" > /root/parse_tvlist.sh
+        printf "#! /bin/bash\ncd /m3u2strm && python3 main.py $TVSHOWURL 'tvshows' $APOLLO /tv/" > /root/parse_tvlist.sh
         chmod +x /root/parse_tvlist.sh
         root/parse_tvlist.sh
         
@@ -42,7 +42,7 @@ else
     fi
     if [ "$MOVIES" == "true" ]
     then
-        echo "cd /m3u2strm && python3 main.py $MOVIEURL 'movies' $APOLLO /movies/" > /root/parse_movielist.sh
+        printf "#! /bin/bash\ncd /m3u2strm && python3 main.py $MOVIEURL 'movies' $APOLLO /movies/" > /root/parse_movielist.sh
         chmod +x /root/parse_movielist.sh
         /root/parse_movielist.sh
         
@@ -57,7 +57,7 @@ else
     fi
     if [ "$EVENTS" == "true" ]
     then
-        echo "cd /m3u2strm && python3 main.py $EVENTURL 'events' $APOLLO /events/" > /root/parse_eventlist.sh
+        printf "#! /bin/bash\ncd /m3u2strm && python3 main.py $EVENTURL 'events' $APOLLO /events/" > /root/parse_eventlist.sh
         chmod +x /root/parse_eventlist.sh
         /root/parse_eventlist.sh
         
