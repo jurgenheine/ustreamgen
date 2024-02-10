@@ -4,12 +4,13 @@ import re
 import tools
 
 class Movie(object):
-  def __init__(self, title, url, year=None, resolution=None, language=None):
+  def __init__(self, title, url, year=None, resolution=None, language=None, group=None):
     self.title = title.strip()
     self.url = url
     self.year = year
     self.resolution = resolution
     self.language = language
+    self.group = group
 
   def getFilename(self):
     filestring = [self.title.replace(':','-').replace('*','_').replace('/','_').replace('?','')]
@@ -23,31 +24,38 @@ class Movie(object):
       self.year = "A"
     if self.resolution:
       filestring.append(self.resolution)
-    return ('movies/' + self.title.replace(':','-').replace('*','_').replace('/','_').replace('?','') + ' - ' + self.year + "/" + ' - '.join(filestring) + ".strm")
+    titleyeartring = self.title.replace(':','-').replace('*','_').replace('/','_').replace('?','') + ' - ' + self.year
+    if self.group is not None:
+      dirstring = self.group.strip().replace(':','-').replace('*','_').replace('/','_').replace('?','').replace('|','-') + "/" + titleyeartring 
+    else:
+      dirstring = titleyeartring
+    return ('movies/' + dirstring + "/" + ' - '.join(filestring) + ".strm")
   
   def makeStream(self):
     tools.makeStrm(self.getFilename(), self.url)
 
 class Event(object):
-  def __init__(self, title, url, eventtype, year=None, resolution=None, language=None):
+  def __init__(self, title, url, eventtype, year=None, resolution=None, language=None, group=None):
     self.title = title.strip()
     self.url = url
     self.eventtype = eventtype
     self.year = year
     self.resolution = resolution
     self.language = language
+    self.group = group
 
   def getFilename(self):
     filestring = [self.title.strip().replace(':','-').replace('*','_').replace('/','_').replace('?','').replace('|','-')]
     if self.resolution:
       filestring.append(self.resolution.strip())
-    return ('events/'+ self.eventtype.strip().replace(':','-').replace('*','_').replace('/','_').replace('?','').replace('|','-') + "/" + ' - '.join(filestring) + ".strm")
+    dirstring =self.eventtype.strip().replace(':','-').replace('*','_').replace('/','_').replace('?','').replace('|','-')
+    return ('events/'+ dirstring + "/" + ' - '.join(filestring) + ".strm")
   
   def makeStream(self):
     tools.makeStrm(self.getFilename(), self.url)
 
 class TVEpisode(object):
-  def __init__(self, showtitle, url, seasonnumber=None, episodenumber=None ,resolution=None, language=None, episodename=None, airdate=None):
+  def __init__(self, showtitle, url, seasonnumber=None, episodenumber=None ,resolution=None, language=None, episodename=None, airdate=None, group=None):
     self.showtitle = showtitle
     self.episodenumber = episodenumber
     self.seasonnumber = seasonnumber
@@ -58,6 +66,7 @@ class TVEpisode(object):
     self.episodename = episodename
     self.airdate = airdate
     self.sXXeXX = "S" + str(self.seasonnumber) + "E" + str(self.episodenumber)
+    self.group = group
 
   def getFilename(self):
     filestring = [self.showtitle.replace(':','-').replace('*','_').replace('/','_').replace('?','')]
@@ -71,19 +80,27 @@ class TVEpisode(object):
       filestring.append(self.language.strip())
     if self.resolution:
       filestring.append(self.resolution.strip())
-    if self.seasonnumber:
-      return ('tvshows/' + self.showtitle.strip().replace(':','-').replace('/','_').replace('*','_').replace('?','') + "/" + self.showtitle.strip().replace(':','-').replace('/','-').replace('*','_').replace('?','') + " - Season " + str(self.seasonnumber.strip()) + '/' + ' - '.join(filestring).replace(':','-').replace('*','_') + ".strm")
+    showtitlestring = self.showtitle.strip().replace(':','-').replace('/','_').replace('*','_').replace('?','')
+    if self.group is not None:
+      dirstring = self.group.strip().replace(':','-').replace('*','_').replace('/','_').replace('?','').replace('|','-') + "/" + showtitlestring 
     else:
-      return ('tvshows/' + self.showtitle.strip().replace(':','-').replace('/','_').replace('*','_').replace('?','') +"/" +' - '.join(filestring).replace(':','-').replace('*','_') + ".strm")
+      dirstring = showtitlestring
+    
+    if self.seasonnumber:
+      seasonstring = self.showtitle.strip().replace(':','-').replace('/','-').replace('*','_').replace('?','') + " - Season " + str(self.seasonnumber.strip())
+      return ('tvshows/' + dirstring + "/" + seasonstring + '/' + ' - '.join(filestring).replace(':','-').replace('*','_') + ".strm")
+    else:
+      return ('tvshows/' + dirstring +"/" +' - '.join(filestring).replace(':','-').replace('*','_') + ".strm")
   
   def makeStream(self):
     tools.makeStrm(self.getFilename(), self.url)
 
 class rawStreamList(object):
-  def __init__(self, filename):
+  def __init__(self, filename, usegroup):
     self.log = logger.Logger(__file__, log_level=logger.LogLevel.DEBUG)
     self.streams = {}
     self.filename = filename
+    self.usegroup = usegroup
     self.readLines()
     self.parseLine()
 
@@ -197,19 +214,24 @@ class rawStreamList(object):
       #print(resolution)
       title = tools.stripResolution(title)
     episodeinfo = tools.parseEpisode(title)
+    group = None
+    if self.usegroup:
+      grpmatch = tools.tvgGroupMatch(streaminfo)
+      if grpmatch:
+        group =  tools.parseGroup(grpmatch)
     if episodeinfo:
       if len(episodeinfo) == 3:
         showtitle = episodeinfo[0]
         airdate = episodeinfo[2]
         episodename = episodeinfo[1]
-        episode = TVEpisode(showtitle, streamURL, resolution=resolution, episodename=episodename, airdate=airdate)
+        episode = TVEpisode(showtitle, streamURL, resolution=resolution, episodename=episodename, airdate=airdate, group=group)
       else:
         showtitle = episodeinfo[0]
         episodename = episodeinfo[1]
         seasonnumber = episodeinfo[2]
         episodenumber = episodeinfo[3]
         language = episodeinfo[4]
-        episode = TVEpisode(showtitle, streamURL, seasonnumber=seasonnumber, episodenumber=episodenumber, resolution=resolution, language=language, episodename=episodename)
+        episode = TVEpisode(showtitle, streamURL, seasonnumber=seasonnumber, episodenumber=episodenumber, resolution=resolution, language=language, episodename=episodename, group=group)
       print(episode.__dict__, 'TVSHOW')
       print(episode.getFilename())
       episode.makeStream()
@@ -234,7 +256,12 @@ class rawStreamList(object):
     if language:
       title = tools.stripLanguage(title)
       language = language.group().strip()
-    eventstream = Event(title, streamURL,eventtype=eventtype, year=year, resolution=resolution, language=language)
+    group = None      
+    if self.usegroup:
+      grpmatch = tools.tvgGroupMatch(streaminfo)
+      if grpmatch:
+        group =  tools.parseGroup(grpmatch)
+    eventstream = Event(title, streamURL,eventtype=eventtype, year=year, resolution=resolution, language=language, group=group)
     print(eventstream.__dict__, "EVENT")
     print(eventstream.getFilename())
     eventstream.makeStream()
@@ -253,7 +280,12 @@ class rawStreamList(object):
     if language:
       title = tools.stripLanguage(title)
       language = language.group().strip()
-    moviestream = Movie(title, streamURL, year=year, resolution=resolution, language=language)
+    group = None
+    if self.usegroup:
+      grpmatch = tools.tvgGroupMatch(streaminfo)
+      if grpmatch:
+        group =  tools.parseGroup(grpmatch)
+    moviestream = Movie(title, streamURL, year=year, resolution=resolution, language=language, group=group)
     print(moviestream.__dict__, "MOVIE")
     print(moviestream.getFilename())
     moviestream.makeStream()
