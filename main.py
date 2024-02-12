@@ -25,7 +25,7 @@ if funct == 'all':
     if events == 'true':
         eventsDestination = sys.argv[9]
 
-    listhandler.parseIPTVLists(funct, providerurl, directory, moviesDestination, tvshowsDestination, eventsDestination, usegroup)
+    listhandler.parseIPTVLists(funct, providerurl, directory, usegroup, moviesDestination, tvshowsDestination, eventsDestination)
 
 else:
     apollo = sys.argv[4]
