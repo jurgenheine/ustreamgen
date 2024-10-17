@@ -120,6 +120,7 @@ class rawStreamList(object):
       print("THISLINE:", thisline)
       if re.compile('EXTM3U', re.IGNORECASE).search(thisline):
         #first required line, skip
+        lineparsed = True
       elif re.compile('#EXTINF', re.IGNORECASE).search(thisline): 
         if lineparsed == True:
           #first info line
