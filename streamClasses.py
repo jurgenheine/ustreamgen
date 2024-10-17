@@ -110,35 +110,54 @@ class rawStreamList(object):
  
   def parseLine(self):
     linenumber=0
-    for j in range(len(self.lines)):
-      numlines = len(self.lines)
-      if linenumber >= numlines:
-        return 0
-      if not linenumber:
-        linenumber = 0
+    numlines = len(self.lines)
+    infoline = ''
+    lineparsed = True
+    while linenumber > numlines:
       thisline = self.lines[linenumber]
       nextline = self.lines[linenumber + 1]
-      firstline = re.compile('EXTM3U', re.IGNORECASE).search(thisline)
-      if firstline:
-        linenumber += 1
-        continue
-      thisline=thisline.replace("#","")
+
       print("THISLINE:", thisline)
-      if thisline[0] == "#" and nextline[0] == "#":
-        if tools.verifyURL(self.lines[linenumber+2]):
-          self.log.write_to_log(msg=' '.join(["raw stream found:", str(linenumber),'\n', ' '.join([thisline, nextline]),self.lines[linenumber+2]]))
-          self.parseStream(' '.join([thisline, nextline]),self.lines[linenumber+2])
-          linenumber += 3
-          #self.parseLine(linenumber)
+      if re.compile('EXTM3U', re.IGNORECASE).search(thisline):
+        #first required line, skip
+      elif re.compile('#EXTINF', re.IGNORECASE).search(thisline): 
+        if lineparsed == True:
+          #first info line
+          infoline = thisline
         else:
-          self.log.write_to_log(msg=' '.join(['Error finding raw stream in linenumber:', str(linenumber),'\n', ' '.join(self.lines[linenumber:linenumber+2])]))
-          linenumber += 1
-          #self.parseLine(linenumber)
-      elif tools.verifyURL(nextline):
-        self.log.write_to_log(msg=' '.join(["raw stream found: ", str(linenumber),'\n', '\n'.join([thisline,nextline])]))
-        self.parseStream(thisline, nextline)
-        linenumber += 2
-        #self.parseLine(linenumber)
+          #no line parsed, next info line
+          infoline = ' '.join([infoline, thisline])
+          lineparsed = False
+      elif re.compile('#EXTINF', re.IGNORECASE).search(nextline) and tools.verifyURL(thisline):
+        #current line is not info, has url and next line is new info 
+        lineparsed = True
+        self.log.write_to_log(msg=' '.join(["raw stream found: ", str(linenumber),'\n', '\n'.join([infoline, thisline])]))
+        self.parseStream(infoline, thisline)
+      else:
+        #combine the info
+        infoline = ' '.join([infoline, thisline])
+        lineparsed = False
+
+      linenumber += 1
+
+
+#      thisline=thisline.replace("#","")
+#      print("THISLINE:", thisline)
+#      if thisline[0] == "#" and nextline[0] == "#":
+#        if tools.verifyURL(self.lines[linenumber+2]):
+#          self.log.write_to_log(msg=' '.join(["raw stream found:", str(linenumber),'\n', ' '.join([thisline, nextline]),self.lines[linenumber+2]]))
+#          self.parseStream(' '.join([thisline, nextline]),self.lines[linenumber+2])
+#          linenumber += 3
+#          #self.parseLine(linenumber)
+#        else:
+#          self.log.write_to_log(msg=' '.join(['Error finding raw stream in linenumber:', str(linenumber),'\n', ' '.join(self.lines[linenumber:linenumber+2])]))
+#          linenumber += 1
+#          #self.parseLine(linenumber)
+#      elif tools.verifyURL(nextline):
+#        self.log.write_to_log(msg=' '.join(["raw stream found: ", str(linenumber),'\n', '\n'.join([thisline,nextline])]))
+#        self.parseStream(thisline, nextline)
+#        linenumber += 2
+#        #self.parseLine(linenumber)
 
   def parseStreamType(self, streaminfo, streamURL):
     moviematch = tools.urlMovieMatch(streamURL)
