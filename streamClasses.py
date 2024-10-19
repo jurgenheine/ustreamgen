@@ -113,15 +113,18 @@ class rawStreamList(object):
     numlines = len(self.lines)
     infoline = ''
     lineparsed = True
-    while linenumber > numlines:
+    while linenumber < numlines:
       thisline = self.lines[linenumber]
-      nextline = self.lines[linenumber + 1]
+
+      nextline = None
+      if(linenumber + 1<numlines):
+        nextline = self.lines[linenumber + 1]
 
       print("THISLINE:", thisline)
       if re.compile('EXTM3U', re.IGNORECASE).search(thisline):
         #first required line, skip
         lineparsed = True
-      elif re.compile('#EXTINF', re.IGNORECASE).search(thisline): 
+      elif thisline.startswith("#"): 
         if lineparsed == True:
           #first info line
           infoline = thisline
@@ -129,7 +132,7 @@ class rawStreamList(object):
           #no line parsed, next info line
           infoline = ' '.join([infoline, thisline])
           lineparsed = False
-      elif re.compile('#EXTINF', re.IGNORECASE).search(nextline) and tools.verifyURL(thisline):
+      elif tools.verifyURL(thisline) and (nextline is None or nextline.startswith("#")):
         #current line is not info, has url and next line is new info 
         lineparsed = True
         self.log.write_to_log(msg=' '.join(["raw stream found: ", str(linenumber),'\n', '\n'.join([infoline, thisline])]))
